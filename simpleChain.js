@@ -39,6 +39,7 @@ class Blockchain{
       console.log("initial block count = " + count);
       if (count == 0){
         this.addBlock(new Block("First block in the chain - Genesis block"));
+        callback(this);
       }else{
         this.blockCount = count;
         callback(this);

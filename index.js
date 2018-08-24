@@ -3,7 +3,7 @@ const bodyparser = require('body-parser');
 const simpleChain = require('./simpleChain');
 
 const app = new express();
-
+const port = 8000;
 app.use(bodyparser.urlencoded({extended:true}));
 
 
@@ -34,6 +34,7 @@ app.get('/:blockheight',(req,res)=>{
 //@access public
 
 app.post("/block",(req,res)=>{
+    console.log(req.body);
     const block = new simpleChain.Block(req.body.body);
     const blockchain = new simpleChain.Blockchain((thisChain)=>{
         thisChain.addBlock(block).then(
@@ -46,6 +47,6 @@ app.post("/block",(req,res)=>{
 })
 
 
-app.listen(8000,(() =>{
-    console.log('server started, listening on 3000')
+app.listen(port,(() =>{
+    console.log('server started, listening on ' + port)
 }))
