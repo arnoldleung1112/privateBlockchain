@@ -1,27 +1,36 @@
-1. install all dependency in package.json:
+<h1>Setup</h1>
 
-npm build
+1. after clonning/ downloading the source code, \create chaindata directory:
 
-2. run the web service use one of the following command:
+<code> mkdir chaindata </code>
 
-node index.js
-  or
-npm run server
+2. install all dependency in package.json:
 
-3. sever is now up and running at port 8000, you should see the following in the console
+<code> npm build  </code>
 
-server started, listening on 3000
+3. run the web service use one of the following command:
 
-4. RESTFUL WEB API:
+<code>node index.js</code>
 
-//@route: GET /:blockheight
-//@task: GET block by blockheight
-//@access public
+or
 
-  GET localhost:8000/:blockheight
+<code>npm run server</code>
 
-  returns an JSON object of block data given the variable blockheight e.g.
+4. sever is now up and running at port 8000, you should see the following in the console
 
+<code>server started, listening on 8000</code>
+
+<h1>RESTFUL WEB API</h1>
+
+<h2> 1. localhost:8000/:blockheight</h2>
+
+returns an JSON object of block data given the variable blockheight e.g.
+
+localhost:8000/0
+
+returns
+
+<code>
   {
     "hash": "feacca39907d22d3a36da9e668c5c2bbb6c50c23758f7c15ae546cba99810dc5",
     "height": 0,
@@ -29,24 +38,32 @@ server started, listening on 3000
     "time": "1535085045",
     "previousBlockHash": ""
   }
+</code>
 
-  if there is no block in the blockchain, a genesis block will be created.
+if there is no block in the blockchain, a genesis block will be created.
   
-  if the program failed to find a block it will return the message:
-  
-  {
+if the program failed to find a block it will return the message:
+<code>
+{
   "err": "block not found"
   }
+</code>
 
-//@route: POST /block
-//@task: add new block
-//@access public
-
-  POST localhost:8000/block
+<h2>2. POST localhost:8000/block</h2>
+  
   params: body
   
-  given a post request with a parameter of key "body", the program will add a new block on top of the blockchain. The API will return the block data after successfully adding the block
+given a post request with a parameter of key "body", the program will add a new block on top of the blockchain, with value of "body" in stored in the new block.
+
+The API will return the newly added block data in JSON after successfully adding the block. (make sure content type in the request header contain [{"key":"Content-Type","value":"application/x-www-form-urlencoded"}].
   
+  example:
+  
+  localhost:8000/block
+  params: "body": "this is the content"
+  
+  returns
+  <code>
   {
     "hash": "124c34235ab88b98a8990a4cba8bb9e372e2aeeb8e3c4f0745baa2a4cf937381",
     "height": 4,
@@ -54,9 +71,10 @@ server started, listening on 3000
     "time": "1535090920",
     "previousBlockHash": "89872591ba791fc5a6f42948f266364aa33ab4031162ce95ca77e0bf39fb466a"
   }
-
+  </code>
   faile attempt will return 
-
+  <code>
   {
   "err": "no no block added"
   }
+  </code>
