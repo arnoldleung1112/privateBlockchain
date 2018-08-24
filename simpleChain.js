@@ -33,9 +33,9 @@ class Block{
 |  ================================================*/
 
 class Blockchain{
-  constructor(callback=()=>{}){
+  constructor(callback=(t)=>{}){
     this.blockCount = 0;
-    this.getLevelDBCountPromoise(db).then((count)=>{
+    this.getLevelDBCountPromoise().then((count)=>{
       console.log("initial block count = " + count);
       if (count == 0){
         this.addBlock(new Block("First block in the chain - Genesis block"));
@@ -51,7 +51,7 @@ class Blockchain{
 |  Method to access levelDB data 		|
 |  ================================================*/
 
-  getLevelDBCountPromoise(db) {
+  getLevelDBCountPromoise() {
     return new Promise(function(resolve, reject){
       let count = 0;
       db.createReadStream()
@@ -66,30 +66,13 @@ class Blockchain{
     });  
   }
 
-  readLevelDB (db) {
-    return new Promise((resolve,reject)=>{
-      let dataArray = [];
-      console.log('********************** reading levelDB data************************' );
-      db.createReadStream().on('data', function(data) {
-          console.log('levelDB data key = ' + data.key + '\nvalue: ' + data.value );
-          dataArray.push(data.value)+"\n";
-          
-          
-          }).on('error', function(err) {
-            reject('Unable to read', err);
-          }).on('end', function() {
-            resolve("dataArray = " + dataArray);
-            console.log('********************** complete reading levelDB data************************' );
-          });
-      });
-  }
   /* ===== blockchain  Methods ==========================
 |  blockchain methods		|
 |  ================================================*/
   // Add new block
   addBlock(newBlock){
     return new Promise((resolve, reject)=>{
-      this.getLevelDBCountPromoise(db)
+      this.getLevelDBCountPromoise()
       .then((count)=>{
         // Block height
         newBlock.height = count;
@@ -137,8 +120,7 @@ class Blockchain{
     // get block
     getBlock(blockHeight){
       // return a promoise that returns the block as string
-      db.get(blockHeight,(err, value)=>{console.log(value)});
-      return db.get(blockHeight);
+     return db.get(blockHeight);
     }
 
     // validate block return promoise the return validate result
@@ -199,64 +181,9 @@ class Blockchain{
           }
           console.log('********************** complete validateChain************************' );
         });
-
-
-
-      // for (var i = 0; i < this.blockCount-1; i++) {
-      //   // validate block
-      //   console.log("i =  " + i);
-      //   console.log("comparing block height#" + i + " hash and block height#" + (i +1)+" previoushash value");
-      //   db.get(i).then((blockData)=>{
-      //     let thisBlock = Object.setPrototypeOf(JSON.parse(blockData), new Block(""));
-      //     console.log("i =  " + i);
-      //     this.validateBlock(i).then((result)=>{
-      //       if (!result) errorLog.push(i);
-      //     });
-      //     return thisBlock
-      //   }).then((thisBlock)=>{
-      //     if(thisBlock.count>1){
-      //       db.get(thisBlock.height+1).then((nextBlock)=>{
-      //         let blockHash = thisBlock.hash;
-      //         let previousHash = JSON.parse(nextBlock).previousHash;
-      //         if (blockHash!==previousHash) {
-      //           errorLog.push(i);
-      //         }
-      //       });
-      //     }
-          
-      //   }).catch((err,i)=>{console.log("i = "+ i + " err = "+ err )});
-      // }
-      // if (errorLog.length>0) {
-      //   console.log('Block errors = ' + errorLog.length);
-      //   console.log('Blocks: '+errorLog);
-      //   console.log("****************** complete validating chian ********************");
-      //   return false;
-      // } else {
-      //   console.log('No errors detected');
-      //   console.log("****************** complete validating chian ********************");
-      //   return true;
-      // }
-      
+    
     }
- 
-      
-      
 }
 
 
-
-// ******************** test ****************************
-console.log("initializing blockchain");
-
-let blockchain = new Blockchain((blockchain)=>{
-  console.log(blockchain.blockCount);
-  if (blockchain.blockCount>=1){
-    blockchain.addBlock(new Block("new block"));
-  }
-});
-
-
-
-// ******************** test ****************************
-
-
+module.exports = {Block, Blockchain}
