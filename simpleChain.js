@@ -4,7 +4,6 @@
 
 const SHA256 = require('crypto-js/sha256');
 
-// Todo
 /* =====================levelDB===============================
 |               level DB configurations                       |
 |  =========================================================*/
@@ -42,6 +41,7 @@ class Blockchain{
         callback(this);
       }else{
         this.blockCount = count;
+    
         callback(this);
       }
     });
@@ -184,6 +184,60 @@ class Blockchain{
         });
     
     }
+
+    
+//get blocks by hash
+   
+    getBlockByHash(hash){
+      return new Promise((resolve,reject)=>{
+          
+          db.createReadStream()
+          .on('data', function (data) {
+            const block = JSON.parse(data.value);
+            
+            if(block.hash === hash){
+              
+              resolve(block); 
+            }
+          })
+          .on('end',()=>{
+            reject({err: "no block found"});
+          })
+        }
+        
+      )
+    }
+    //getblock by address
+    
+    getBlockByAddress(address){
+      return new Promise((resolve,reject)=>{
+        //initial list
+          var addressList=[];
+          //read from db
+          db.createReadStream()
+          .on('data', function (data) {
+
+            const block = JSON.parse(data.value);
+            //if address matches
+            if(block.body.address === address){
+              //add to list
+              addressList.push(block);
+            }
+          })
+          .on('end', function () {
+            //return list as promoise resolve
+            if (addressList.length() > 0 ){
+              resolve(addressList);
+            }else{
+              reject({err: "no block found"});
+            }
+            
+          });
+        }
+        
+      )
+    }
+
 }
 
 
