@@ -177,9 +177,9 @@ JSON Response Example
 }
 </code>
 
-<h2>5. POST  http://localhost:8000/stars/hash:[hash]</h2>
+<h2>5. GET  http://localhost:8000/stars/hash:[hash]</h2>
 Response includes entire star block contents along with the addition of star story decoded to ascii.
-<h2>6. POST  http://localhost:8000/stars/address:[ADDRESS] </h2>
+<h2>6. GET  http://localhost:8000/stars/address:[ADDRESS] </h2>
 Response includes entire star block contents along with the addition of star story decoded to ascii.
 
 Multiple stars might be registered to a single blockchain identity.
