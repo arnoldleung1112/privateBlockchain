@@ -43,7 +43,7 @@ app.get('/stars/:lookup',(req,res)=>{
                 (thisChain)=>{   
                     thisChain.getBlockByAddress(value).then(
                         (result)=>{
-                            console.log("the result is")
+                            
                             return res.status(200).json(result.map((block)=> decodeStory(block) ));
                             }
                         )
@@ -88,18 +88,27 @@ app.get('/block/:blockheight',(req,res)=>{
 
 app.post("/block",(req,res)=>{
     //validate input limit to less than 250 words and 500 bytes
-    if((JSON.parse(req.body.star).story.split(' ').length > 250) || Buffer.byteLength(JSON.parse(req.body.star).story) > 500 )
+
+    if (!req.body.address || !req.body.star){
+        return res.status(400).json({err: "address and star object are required"});
+    }
+    
+    //remove \' character from star object
+    const starObj = JSON.parse(req.body.star.replace("\\"+"'","\'"));
+
+    if (!starObj.ra || !starObj.dec || !starObj.story){
+        return res.status(400).json({err: "star object ra, dec and story are required "});
+    }
+
+        if((starObj.story.split(' ').length > 250) || Buffer.byteLength(starObj.story) > 500 )
     return res.status(400).json({err:"story exceed 250 word/500 bytes limit"})
     
     //compose body of the blockchain
+    
+    starObj.story = Buffer.from(starObj.story,'ascii').toString('hex');
     const body = {
         address:req.body.address,
-        star:{
-            ra: JSON.parse(req.body.star).ra,
-            dec: JSON.parse(req.body.star).dec,
-            //string to hex
-            story: Buffer.from(JSON.parse(req.body.star).story,'ascii').toString('hex'),
-        }
+        star: starObj
     }
     
 
@@ -123,6 +132,10 @@ app.post('/requestValidation',(req,res)=>{
     
     //create response with message 
     //see address has requested validation previously
+    if (!req.body.address){
+        return res.status(400).json({err: "address parameter is required"});
+    }
+
     db.get(req.body.address)
         .then((message)=>{
             // if has requested before, get the remaining validation window, if expires, reset to 300s
@@ -194,6 +207,10 @@ app.post('/requestValidation',(req,res)=>{
 
 app.post('/message-signature/validate', (req,res)=>{
     
+    if (!req.body.address || !req.body.signature){
+        return res.status(400).json({err: "address and signature parameters are required"});
+    }
+
     db.get(req.body.address)
     .then((message)=>{
         //verify signature

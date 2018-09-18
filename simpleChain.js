@@ -226,7 +226,7 @@ class Blockchain{
           })
           .on('end', function () {
             //return list as promoise resolve
-            if (addressList.length() > 0 ){
+            if (addressList.length > 0 ){
               resolve(addressList);
             }else{
               reject({err: "no block found"});
