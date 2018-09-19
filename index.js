@@ -7,15 +7,19 @@ const  bitcoinMessage = require('bitcoinjs-message')
 const app = new express();
 const port = 8000;
 app.use(bodyparser.urlencoded({extended:true}));
+app.use(bodyparser.json());
 
+//maximum validation window
 const maxTime = 300;
 /* =====================levelDB===============================
 |               level DB configurations                       |
 |  =========================================================*/
 
 const level = require('level');
-const chainDB = './starRegistry';
-const db = level(chainDB);
+const messagedb = './starRegistry';
+const regDbDir = './regDB';
+const db = level(messagedb);
+const regDB = level(regDbDir);
 
 //@route: GET /stars/[lookupby]:[lookuptype]
 //@task: Get endpoint with URL parameter for lookup by Blockchain Wallet Address
@@ -71,11 +75,17 @@ app.get('/block/:blockheight',(req,res)=>{
             
             thisChain.getBlock(req.params.blockheight).then(
                 (value)=>{
-                    res.status(200).json(JSON.parse(value));
+                    
+                    if(req.params.blockheight != 0){
+                        res.status(200).json(decodeStory(JSON.parse(value)));
+                    }else{
+                        res.status(200).json(JSON.parse(value));
+                    }
+                    
                 }
             ).catch(
-                ()=>{
-                    res.status(404).json({err: 'block not found'})
+                (err)=>{
+                    res.status(404).json({err: 'block not found: '+ err})
                 }
             );
          }
@@ -105,22 +115,39 @@ app.post("/block",(req,res)=>{
     
     //compose body of the blockchain
     
-    starObj.story = Buffer.from(starObj.story,'ascii').toString('hex');
-    const body = {
+    regDB.get(req.body.address)
+    .then((permission)=>{
+        // console.log("perm: " + permission);
+        if(permission == "false"){
+             return res.status(404).json({err: 'no permissioned granted for address'})
+        }else{
+            starObj.story = Buffer.from(starObj.story,'ascii').toString('hex');
+        const body = {
         address:req.body.address,
         star: starObj
     }
     
 
     const block = new simpleChain.Block(body);
+    
     const blockchain = new simpleChain.Blockchain((thisChain)=>{
         thisChain.addBlock(block).then(
-            newBlock => res.status(200).json(newBlock)
+            (newBlock) => {
+                regDB.put(req.body.address,false);
+                res.status(200).json(decodeStory(newBlock));
+            }
+            
         ).catch(
-            ()=>{res.status(404).json({err: 'block add failed'})}
+            (err)=>{res.status(404).json({err: 'block add failed: '+ err})}
         )
         
     });
+        }
+    }
+    ).catch(
+        (err)=>{return res.status(404).json({err: 'no permissioned granted for address: '+ err})}
+        );
+    
 })
 
 
@@ -148,12 +175,13 @@ app.post('/requestValidation',(req,res)=>{
                 validationWindow=maxTime;
                 timestamp = Date.now();
             }
-          
+            
+            
             
             const response = {
                 address: address,
                 requestTimeStamp: timestamp,
-                message: message,
+                message: req.body.address+":"+timestamp+":starRegistry",
                 validationWindow : validationWindow
               };
             
@@ -170,7 +198,7 @@ app.post('/requestValidation',(req,res)=>{
         .catch(
             // if has not requested before create new request
             (err)=>{
-                console.log(err);
+                
                 address = req.body.address;
                 timestamp = Date.now().toString();
                 message = req.body.address+":"+timestamp+":starRegistry";
@@ -211,12 +239,15 @@ app.post('/message-signature/validate', (req,res)=>{
         return res.status(400).json({err: "address and signature parameters are required"});
     }
 
+    
+
     db.get(req.body.address)
     .then((message)=>{
         //verify signature
-        const messageSignature = bitcoinMessage.verify(message, req.body.address, req.body.signature) ? "valid": "invalid"
+         const messageSignature = bitcoinMessage.verify(message, req.body.address, req.body.signature) ? "valid": "invalid"
         // get timestamp
-        console.log("verified: " + messageSignature);
+        // console.log("verified: " + messageSignature);
+        
         [address,timestamp,star] = message.split(":");
         //verify validation window
         const validationWindow = maxTime - Math.floor((Date.now() - timestamp)/1000)
@@ -231,13 +262,13 @@ app.post('/message-signature/validate', (req,res)=>{
               messageSignature: messageSignature
             }
           }
-    
+        regDB.put(req.body.address, true);
         return res.json(response);
     })
     .catch(
         (err)=>{
-            console.log(err);
-            res.status(404).json({err:"validation failed, unfound address request or invalid input /n" + err.toString()});
+            
+            res.status(404).json({err:"validation failed, cant find address request or invalid input /n" + err.toString()});
 
         } 
     )

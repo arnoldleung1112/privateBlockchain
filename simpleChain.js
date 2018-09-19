@@ -35,16 +35,23 @@ class Blockchain{
   constructor(callback=(t)=>{}){
     this.blockCount = 0;
     this.getLevelDBCountPromoise().then((count)=>{
-      console.log("initial block count = " + count);
+      // console.log("initial block count = " + count);
       if (count == 0){
-        this.addBlock(new Block("First block in the chain - Genesis block"));
-        callback(this);
+        this.addBlock(new Block("First block in the chain - Genesis block"))
+        .then((newblock)=>{
+          // console.log("added block "+  JSON.stringify(newblock));
+          callback(this);
+        })
+        .catch((err)=>{console.log(err)});        
       }else{
         this.blockCount = count;
     
         callback(this);
       }
-    });
+    })
+    .catch(
+      (err)=>{console.log(err)}
+    );
 
   }
 
@@ -88,8 +95,8 @@ class Blockchain{
            db.put(count, JSON.stringify(newBlock))
            .then(()=>{
             this.blockCount++;
-            console.log("complete add block#" + this.blockCount + " with blockheight = " + this.getBlockHeight());
-            console.log(this.validateBlock(this.blockCount-1).then((result)=>{console.log("is latest block valid: " + result)}));
+            // console.log("complete add block#" + this.blockCount + " with blockheight = " + this.getBlockHeight());
+            // console.log(this.validateBlock(this.blockCount-1).then((result)=>{console.log("is latest block valid: " + result)}));
             this.validateChain();
             resolve(newBlock);
             
@@ -100,8 +107,8 @@ class Blockchain{
          db.put(count, JSON.stringify(newBlock))
          .then(()=>{
             this.blockCount++;
-            console.log("complete add block#" + this.blockCount + " with blockheight = " + this.getBlockHeight());
-            console.log(this.validateBlock(this.blockCount-1).then((result)=>{console.log("is latest block valid: " + result)}));
+            // console.log("complete add block#" + this.blockCount + " with blockheight = " + this.getBlockHeight());
+            // console.log(this.validateBlock(this.blockCount-1).then((result)=>{console.log("is latest block valid: " + result)}));
             this.validateChain();
             resolve(newBlock);
             
@@ -138,10 +145,10 @@ class Blockchain{
         let validBlockHash = SHA256(JSON.stringify(block)).toString();
         // Compare
         if (blockHash===validBlockHash) {
-          console.log(' Block height '+block.height+' valid' );
+          // console.log(' Block height '+block.height+' valid' );
             resolve(true);
           } else {
-            console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
+            // console.log('Block #'+blockHeight+' invalid hash:\n'+blockHash+'<>'+validBlockHash);
             resolve(false);
             }
           });
@@ -151,7 +158,7 @@ class Blockchain{
 
      // Validate blockchain 
     validateChain(){
-      console.log("****************** validating chian ********************");
+      // console.log("****************** validating chian ********************");
       let errorLog = [];
       let previousHash = '';
 
@@ -175,12 +182,12 @@ class Blockchain{
           console.log('Unable to read', err);
         }).on('end', function() {
           if (errorLog.length>0) {
-            console.log('Block errors = ' + errorLog.length);
-            console.log('Blocks: '+errorLog);
+            // console.log('Block errors = ' + errorLog.length);
+            // console.log('Blocks: '+errorLog);
           }else{
-            console.log('No errors detected');
+            // console.log('No errors detected');
           }
-          console.log('********************** complete validateChain************************' );
+          // console.log('********************** complete validateChain************************' );
         });
     
     }
