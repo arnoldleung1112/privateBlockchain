@@ -53,7 +53,8 @@ if the program failed to find a block it will return the message:
 
 <h2>2. POST localhost:8000/block</h2>
   
-  params: 
+  params
+  <p>make sure content type in the request header contain [{"key":"Content-Type","value":"application/x-www-form-urlencoded"}]</p>
   <ul>
   <li>address [Wallet address]</li>
   <li>star object with properties:</li>
@@ -112,6 +113,8 @@ the above example request params returns
 <h2>3. POST localhost:8000/requestValidation</h2>
   
 params: address
+ <p>make sure content type in the request header contain [{"key":"Content-Type","value":"application/x-www-form-urlencoded"}]</p>
+
 
 The Web API will allow users to submit their request using their wallet address.
 
@@ -151,6 +154,7 @@ Your application will provide a JSON response to users. Here is an example of th
  </code>
 
 <h2>4. POST http://localhost:8000/message-signature/validate </h2>
+ <p>make sure content type in the request header contain [{"key":"Content-Type","value":"application/x-www-form-urlencoded"}]</p>
 params:
 address: Wallet address
 signature: Message signature
